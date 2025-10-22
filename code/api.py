@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Dict
 from . import seed
+from .database import Base, engine
+from datetime import datetime, date
 
 app = FastAPI(title='ADSWeb API', openapi_prefix='/adsweb/api/v1')
 
@@ -62,7 +64,48 @@ class PatientOut(BaseModel):
     class Config:
         orm_mode = True
 
+class AppointmentIn(BaseModel):
+    patient_id: int = Field(..., description="ID of the patient")
+    dentist_id: int
+    surgery_id: Optional[int] = None
+    scheduled_at: datetime
+    notes: Optional[str] = None
 
+class AppointmentOut(BaseModel):
+    id: int
+    patient_id: int
+    dentist_id: int
+    surgery_id: Optional[int] = None
+    scheduled_at: datetime
+    notes: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+# --- Dentist ---
+class DentistIn(BaseModel):
+    first_name: str
+    last_name: str
+    specialty: Optional[str]
+    email: Optional[str]
+    phone: Optional[str]
+    address_id: Optional[int]
+
+class DentistOut(BaseModel):
+    id: int
+    class Config:
+        orm_mode = True
+      
+# --- Surgery ---
+class SurgeryIn(BaseModel):
+    title: str
+    description: Optional[str]
+
+class SurgeryOut(BaseModel):
+    id: int
+    class Config:
+        orm_mode = str
+    
 def get_db():
     db = get_session()
     try:
@@ -130,6 +173,7 @@ def register(username: str, email: str, password: str, db: Session = Depends(get
 def startup_event():
     # create tables and seed roles/admin if configured
     try:
+        Base.metadata.create_all(bind=engine)
         seed.seed_initial_data()
     except Exception as e:
         # don't fail startup; just log
@@ -168,3 +212,34 @@ def list_addresses(db: Session = Depends(get_db)):
 def create_address(address: AddressIn, db: Session = Depends(get_db), user: models.User = Depends(auth.require_roles(['admin','staff']))):
     a = crud.create_address(db, **address.dict())
     return a
+
+@app.post("/appointments", response_model=AppointmentOut, status_code=201)
+def add_appointment(appointment: AppointmentIn, db: Session = Depends(get_db), user: models.User = Depends(auth.require_roles(['admin','staff']))):
+    if not db.query(models.Patient).filter(models.Patient.id == appointment.patient_id).first():
+        raise HTTPException(status_code=404, detail="Patient not found")
+    if not db.query(models.Dentist).filter(models.Dentist.id == appointment.dentist_id).first():
+        raise HTTPException(status_code=404, detail="Dentist not found")
+    if appointment.surgery_id and not db.query(models.Surgery).filter(models.Surgery.id == appointment.surgery_id).first():
+        raise HTTPException(status_code=404, detail="Surgery not found")
+
+    new_appointment = models.Appointment(**appointment.dict())
+    db.add(new_appointment)
+    db.commit()
+    db.refresh(new_appointment)
+    return new_appointment
+
+@app.post('/surgeries', response_model=SurgeryOut, status_code=201)
+def create_surgery(surgery: SurgeryIn, db: Session = Depends(get_db)):
+    new_surgery = models.Surgery(**surgery.dict())
+    db.add(new_surgery)
+    db.commit()
+    db.refresh(new_surgery)
+    return new_surgery
+
+@app.post('/dentists', response_model=DentistOut, status_code=201)
+def create_dentist(dentist: DentistIn, db: Session = Depends(get_db)):
+    new_dentist = models.Dentist(**dentist.dict())
+    db.add(new_dentist)
+    db.commit()
+    db.refresh(new_dentist)
+    return new_dentist

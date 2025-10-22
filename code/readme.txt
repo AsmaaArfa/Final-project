@@ -41,5 +41,6 @@ Promote a user to admin (local)
 Run the included helper script to promote a user to the `admin` role. Replace the username as needed:
 
 ```
-PYTHONPATH=. /Users/asmaahesham/Desktop/ASD-Course/App-Repo/Docker-container/venv/bin/python scripts/promote_admin.py apitestadmin2
+export PYTHONPATH=/Final-project
+python3 /Final-project/scripts/promote_admin.py Asmaa
 ```

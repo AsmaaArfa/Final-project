@@ -16,7 +16,7 @@ Run example:
 
 ```bash
 # Run the FastAPI server (development)
-python -m uvicorn code.main:app --reload
+python3 -m uvicorn code.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Quick API examples (replace host/port if different):
