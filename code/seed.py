@@ -1,6 +1,6 @@
 import os
-from .database import get_session
-from . import crud, models
+from database import get_session
+import crud, models
 
 
 def ensure_role(db, role_name: str, description: str = None):
@@ -25,7 +25,7 @@ def seed_initial_data():
             exists = db.query(models.User).filter_by(username=admin_username).first()
             if not exists:
                 # hash password using auth helper
-                from .auth import get_password_hash
+                from auth import get_password_hash
                 hashed = get_password_hash(admin_password)
                 user = crud.create_user(db, username=admin_username, email=admin_email, full_name=admin_username, hashed_password=hashed)
                 # attach admin role

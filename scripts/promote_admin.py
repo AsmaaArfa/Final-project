@@ -6,6 +6,9 @@ import sys
 from code.database import get_session
 from code import crud, models
 
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 if len(sys.argv) < 2:
     print('usage: promote_admin.py <username>')
     sys.exit(2)

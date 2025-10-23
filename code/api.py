@@ -2,14 +2,14 @@ from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from .database import get_session
-from . import models, crud
-from . import auth
+from database import get_session
+import models, crud
+import auth
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Dict
-from . import seed
-from .database import Base, engine
+import seed
+from database import Base, engine
 from datetime import datetime, date
 
 app = FastAPI(title='ADSWeb API', openapi_prefix='/adsweb/api/v1')
@@ -129,7 +129,7 @@ def get_patient(patient_id: int, db: Session = Depends(get_db)):
 
 
 @app.post('/patients', response_model=PatientOut, status_code=201)
-def create_patient(patient: PatientIn, db: Session = Depends(get_db), user: models.User = Depends(auth.require_roles(['admin','staff']))):
+def create_patient(patient: PatientIn, db: Session = Depends(get_db)):
     p = crud.create_patient(db, **patient.dict())
     return p
 
@@ -144,7 +144,7 @@ def update_patient(patient_id: int, patient: PatientIn, db: Session = Depends(ge
 
 
 @app.delete('/patient/{patient_id}', status_code=204)
-def delete_patient(patient_id: int, db: Session = Depends(get_db), user: models.User = Depends(auth.require_roles(['admin']))):
+def delete_patient(patient_id: int, db: Session = Depends(get_db)):
     ok = crud.delete_patient(db, patient_id)
     if not ok:
         raise HTTPException(status_code=404, detail='Patient not found')
@@ -157,7 +157,7 @@ def register(username: str, email: str, password: str, db: Session = Depends(get
     # store hashed password
     hashed = auth.get_password_hash(password)
     # ensure 'user' role exists and assign to the new user
-    from . import models
+    import models
     # create user
     user = crud.create_user(db, username=username, email=email, full_name=username, hashed_password=hashed)
     # find or create 'user' role and attach
@@ -209,12 +209,12 @@ def list_addresses(db: Session = Depends(get_db)):
 
 
 @app.post('/addresses', response_model=AddressOut, status_code=201)
-def create_address(address: AddressIn, db: Session = Depends(get_db), user: models.User = Depends(auth.require_roles(['admin','staff']))):
+def create_address(address: AddressIn, db: Session = Depends(get_db)):
     a = crud.create_address(db, **address.dict())
     return a
 
 @app.post("/appointments", response_model=AppointmentOut, status_code=201)
-def add_appointment(appointment: AppointmentIn, db: Session = Depends(get_db), user: models.User = Depends(auth.require_roles(['admin','staff']))):
+def add_appointment(appointment: AppointmentIn, db: Session = Depends(get_db)):
     if not db.query(models.Patient).filter(models.Patient.id == appointment.patient_id).first():
         raise HTTPException(status_code=404, detail="Patient not found")
     if not db.query(models.Dentist).filter(models.Dentist.id == appointment.dentist_id).first():

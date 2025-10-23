@@ -1,4 +1,4 @@
-ADSWeb API endpoints (base URL: http://127.0.0.1:8001/adsweb/api/v1)
+ADSWeb API endpoints (base URL: http://127.0.0.1:8002/adsweb/api/v1)
 
 Patients
 - GET  /patients                      -> List patients
@@ -15,7 +15,7 @@ Addresses
 Example curl to create an address (replace <TOKEN>):
 
 ```bash
-curl -X POST "http://127.0.0.1:8001/adsweb/api/v1/addresses" \
+curl -X POST "http://127.0.0.1:8002/adsweb/api/v1/addresses" \
 	-H "Authorization: Bearer <TOKEN>" \
 	-H "Content-Type: application/json" \
 	-d '{

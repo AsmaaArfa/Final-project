@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: my-postgres-C1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: BankDB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - my-app-network-C1
+
+  web:
+    build: .
+    container_name: fastapi-app-C1
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/BankDB
+    depends_on:
+      - db
+    networks:
+      - my-app-network-C1
+    env_file:
+      - ./code/.env
+
+volumes:
+  postgres_data:
+
+networks:
+  my-app-network-C1:
+    driver: bridge

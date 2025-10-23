@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, delete
-from . import models
+import models
 from typing import Optional, List, Dict, Any
 
 

@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base
+from database import Base
 
 # Association table for many-to-many User <-> Role
 user_roles = Table(
