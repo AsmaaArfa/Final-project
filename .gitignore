@@ -1,6 +1,12 @@
 # Terraform
 .terraform/
 *.tfstate
-*.tfstate.*
-crash.log
-terraform.tfstate.backup
+*.tfstate.backup
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Docker
+*.log
